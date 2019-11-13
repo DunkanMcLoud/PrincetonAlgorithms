@@ -1,0 +1,90 @@
+import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.StdStats;
+
+public class PercolationStats {
+    private int step;
+    private Percolation[] ExperimentalData;
+    private double[] PercolationThresholds;
+
+
+    // perform independent trials on an n-by-n grid
+    public PercolationStats(int n, int trials) throws IllegalArgumentException{
+            if (n <= 0||trials <= 0){
+                throw new IllegalArgumentException();
+            }
+            else{
+                this.step=n;
+                this.ExperimentalData=createGrids(n,trials);
+                this.PercolationThresholds=yieldThresholds(n,trials);
+            }
+    }
+
+    //Provides a series of experiment yielding array of thresholds
+    private double[] yieldThresholds(int n, int trials) {
+        PercolationThresholds = new double[trials];
+        int index=0;
+        for (Percolation p : ExperimentalData) {
+        PercolationThresholds[index]=provideExperiment(p);
+        index++;
+        }
+        return PercolationThresholds;
+    }
+
+    //Percolation -> Double
+    //Opens random elements of percolation grid,until it Percolates, returns relationship of openned
+    //elements to sum of elements in grid
+    private double provideExperiment(Percolation p) {
+        Percolation instance = p;
+        while (instance.percolates()==false){
+            int i1 = StdRandom.uniform(this.step); // chooses random coordinates and opens elements
+            int i2 = StdRandom.uniform(this.step);
+            instance.open(i1,i2);
+        }
+        double OpennedSites = instance.numberOfOpenSites();
+        double SumOfSites =this.step*this.step;
+        double result = OpennedSites/SumOfSites;
+        return result;
+    }
+
+    // Integer Integer -> Percolation[]
+    //Adds to ExperimentalData percolation grids(size n) times (trials)
+    private  Percolation[] createGrids(int n, int trials) {
+        ExperimentalData = new Percolation[trials];
+        for (int i = 0; i < trials; i++) {
+            ExperimentalData[i] = new Percolation(n);
+        }
+        return ExperimentalData;
+    }
+
+    ;
+
+    // sample mean of percolation threshold
+    public double mean(){
+        return StdStats.mean(PercolationThresholds);
+    }
+
+    public double stddev(){
+        return StdStats.stddev(PercolationThresholds);
+    }
+    // sample standard deviation of percolation threshold
+
+    // low endpoint of 95% confidence interval
+    public double confidenceLo(){
+        double divisor = Math.sqrt(PercolationThresholds.length);
+        double SampleMean = mean();
+        double StdDev = stddev();
+        return (SampleMean-(1.96*StdDev)/divisor);
+    }
+
+    // high endpoint of 95% confidence interval
+    public double confidenceHi(){
+        double divisor = Math.sqrt(PercolationThresholds.length);
+        double SampleMean = mean();
+        double StdDev = stddev();
+        return (SampleMean+(1.96*StdDev)/divisor);
+    }
+
+    // test client (see below)
+    public static void main(String[] args){}
+
+}
